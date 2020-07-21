@@ -1,6 +1,21 @@
 all: osf.zip download figures
 
-figures: figs/
+figures: figs/ fig3 fig4a15 fig16a19
+
+fig16a19:
+	matlab -nodisplay -nosplash -nodesktop -r "run('run16a19_plotHLM.m');exit;"
+
+fig4a15:
+	matlab -nodisplay -nosplash -nodesktop -r "run('run4al15_plotHLM.m');exit;"	
+
+fig3:
+	matlab -nodisplay -nosplash -nodesktop -r "run('run3_plotHLM.m');exit;"
+
+clear:
+	- rm figs/*
+
+## Pre-requisit
+## Matlab. Used: R2018b (9.5.0.944444) 64-bit (glnxa64)
 
 figs/:
 	mkdir figs/

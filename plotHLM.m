@@ -25,11 +25,11 @@ function plotHLM(realData,runModelNum,whichPlots,flagPX,whichDir)
 
 %% Housekeeping
 close all
-cd '/mnt/projects/LogUtil/code/Behav/BayesianModeling/sandbox_ollie'
+addpath(genpath('/home/landfried/meta/fork/ergodicity-breaking/'));
 
 %% Set directories, figure properties and initial variables
 
-figDir='/mnt/projects/LogUtil/code/Behav/BayesianModeling/sandbox_ollie/figs/';
+figDir='/home/landfried/meta/fork/ergodicity-breaking/figs/';
 if exist('realData','var')==0
     realData=input('real (n=18)(1) or synth data model recovery (n=27)(2) synth data param recovery (n=9) (3)');
 end
@@ -40,9 +40,9 @@ if exist('whichPlots','var')==0
     whichPlots=input('which plots to generate?');
 end
 if exist('whichDir','var')==0
-    cd('samples&stats');nSamples=1;
+    cd('samples_stats');nSamples=1;
 else
-    cd(['samples&stats/',whichDir]);sampList=dir('JAGS*');nSamples=numel(sampList);
+    cd(['samples_stats/',whichDir]);sampList=dir('JAGS*');nSamples=numel(sampList);
 end
 switch realData
     case 1%real agents
@@ -67,6 +67,7 @@ end
 %set(0,'DefaultFigureWindowStyle','docked');
 %eps = 0.01; binsc = eps/2:eps:1-eps/2; binse = 0:eps:1;
 
+
 %% Loop over multiple JAGS samples results 
 for samplp=1:nSamples
     
@@ -78,12 +79,17 @@ for samplp=1:nSamples
 
     %% 0 Plot Hyperpriors
     if find(whichPlots==0)
-        
+	
         figName='Hyperpriors';
-        nFigs=nFigs+1;
+        nFigs=1;
         figure(nFigs);set(gcf,'color', 'w', 'units', 'normalized','paperpositionmode','auto');
         nRows=3;nCols=4;ct=1;
-        
+       
+	nBins=50;
+
+	%fNames = fieldnames(samples);
+        %disp(fNames)
+
         subplot(nRows,nCols,ct);%Prior Log Mu Beta lin
         histogram(samples.lmu_beta_lin_m,nBins,'Normalization','probability');
         title('Prior LogMuBeta Lin', 'Interpreter', 'none');
@@ -128,7 +134,7 @@ for samplp=1:nSamples
         title('Post LogSigmaBeta lin mult', 'Interpreter', 'none');
         ct=ct+1;
         
-        subplot(nRows,nCols,ct);%Prior Log Tau Beta lin
+	subplot(nRows,nCols,ct);%Prior Log Tau Beta lin
         histogram(samples.ltau_beta_lin_m,nBins);xlim([0,200])
         title('Prior LogTauBeta lin', 'Interpreter', 'none');
         ct=ct+1;
@@ -211,7 +217,6 @@ for samplp=1:nSamples
     
     %% 3 Plot choice proportions
     if find(whichPlots==3)
-        
         %% load data 
         load data_ergChoiceProportions
         
@@ -322,13 +327,13 @@ for samplp=1:nSamples
         axis square
         saveas(gcf,[figDir,'_',figName,datestr(clock)],'epsc');
         
-        figName='delta choicePropotions raincloud';
-        figure
-        deltaCP=ergChoiceAllData{:,2}-ergChoiceAllData{:,1};
-        raincloud_plots_raincloud_plot(deltaCP,[0.5,0.5,0.5])
-        ylim([0,6]);
-        axis square
-        saveas(gcf,[figDir,'_',figName,datestr(clock)],'epsc');
+        %figName='delta choicePropotions raincloud';
+        %figure
+        %deltaCP=ergChoiceAllData{:,2}-ergChoiceAllData{:,1};
+        %raincloud_plots_raincloud_plot(deltaCP,[0.5,0.5,0.5])
+        %ylim([0,6]);
+        %axis square
+        %saveas(gcf,[figDir,'_',figName,datestr(clock)],'epsc');
         
     end
     
@@ -587,12 +592,12 @@ for samplp=1:nSamples
             %% 15 Plot Eta versus TimeAv
             if find(whichPlots==15)
                 figure,hold on,figName='Eta map estimates versus time averages';load('data_TimeAveragesChosenGambles')
-                yyaxis left
-                scatter(mapAdd,TimeAveragesChosenGambles(:,1),'b.')
+		yyaxis left
+                scatter(mapAdd,data_TimeAveragesChosenGambles(:,1),'b.')
                 line([0, 0], ylim, 'LineWidth', 1, 'Color', 'b','LineStyle','--')
                 ylabel('Time average additive growth rate')
                 yyaxis right
-                scatter(mapMult,TimeAveragesChosenGambles(:,2),'r.')
+                scatter(mapMult,data_TimeAveragesChosenGambles(:,2),'r.')
                 ylabel('Time average multiplicative growth rate');xlabel('eta map')
                 line([1, 1],ylim, 'LineWidth', 1, 'Color', 'r','LineStyle','--')
                 axis('square')
@@ -601,7 +606,7 @@ for samplp=1:nSamples
             end
             
         case 2 %Model selection full model
-            
+
             %% 16 Plot posterior z subjectwise
             if find(whichPlots==16)
                 figure,figName='Posterior z subjectwise';zSum=zeros(18,3);%for summing over z values
@@ -646,7 +651,7 @@ for samplp=1:nSamples
                 dims=size(samples.z);%get dimensions of samples
                 nsamps=prod(dims(1:2));%find n samples per subject over chains
                 zSum(zSum==0)=1/(nsamps+1);%set 0 to upper bound probabilities assuming 1 observation in the next sample
-                [post,out]=VBA_groupBMC(log(zSum)');%calculate pxps
+		[post,out]=VBA_groupBMC(log(zSum)');%calculate pxps
                 
                 figure,figName='Protected exceedance probabilities';
                 bar(out.pxp),xlim([0.5,3.5]),ylim([0,1]);
